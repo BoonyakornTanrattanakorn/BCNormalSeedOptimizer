@@ -4,80 +4,66 @@ from selenium.webdriver.chrome.options import Options
 import csv
 
 def isSlot(s):
-    if len(s) < 2: return False
-    return s[:-1].isdigit() and s[-1] in 'AB'
+    return len(s) >= 2 and s[:-1].isdigit() and s[-1] in 'AB'
 
 def getNextSlot(slot, slotMsg):
-    slotNumber = int(slot[:-1]) + 1
-    track = slot[-1]
-    if "->" in slotMsg:
-        track = 'B'
-    elif "<-" in slotMsg:
-        track = 'A'
-        slotNumber += 1
-    return str(slotNumber) + track
+    slotNumber = int(slot[:-1]) + (2 if '<-' in slotMsg else 1)
+    track = 'A' if '<-' in slotMsg else ('B' if '->' in slotMsg else slot[-1])
+    return f"{slotNumber}{track}"
+
 
 def getSlotData(url):
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--log-level=3")
-    driver = webdriver.Chrome(options=options)
-    driver.get(url)
-    # input("Press any key to continue...")
+    
+    with webdriver.Chrome(options=options) as driver:
+        driver.get(url)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    html = driver.page_source
-    soup = BeautifulSoup(html, "html.parser")
+    trackName, slotData, lastSlot = [], {}, None
 
-    lastSlot = "-"
-    trackName = []
-    slotData = dict()
     for row in soup.find_all("tr"):
         cells = [cell.get_text(strip=True) for cell in row.find_all(["td", "th"])]
-        # 1) table head
-        # 2) is track number
-        # 3) content
+        if not cells:
+            continue
         if cells[0] == '#':
             trackName = cells[1:]
         elif isSlot(cells[0]):
             lastSlot = cells[0]
-        elif(lastSlot != '-'):
-            # print(lastSlot, cells)
+        elif lastSlot:
             slotData[lastSlot] = cells
-            lastSlot = '-'
-
-    driver.quit()
+            lastSlot = None
 
     return trackName, slotData
 
+
 def stripSlotName(slotName):
     if '<-' in slotName:
-        slotName = " ".join(slotName.split()[2:])
-    elif '->' in slotName:
-        slotName = slotName.split("->")[0].strip()
+        return " ".join(slotName.split()[2:])
+    if '->' in slotName:
+        return slotName.split("->")[0].strip()
     return slotName
 
 def getRewardDict():
-    rewardDict = dict()
     with open('itemValue.csv', mode='r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            if len(row) == 0: continue
-            count, item = row
-            rewardDict[item.strip()] = int(count)
-    return rewardDict;
-
-
-url = "https://ampuri.github.io/bc-normal-seed-tracking/?seed=647505473&banners=ce%2Clt%2Cn&lastCat=Bird+Cat&selected=c%2C304823453%2Cn"
-trackName, slotData = getSlotData(url)
-items = {stripSlotName(e) for v in slotData.values() for e in v}
-
-tickets = {'silver' : 50, 'lucky' : 50}
+        return {
+            item.strip(): int(count)
+            for row in csv.reader(file)
+            if len(row) == 2
+            for count, item in [row]
+        }
 
 def isTrackSwitch(itemList):
     for i in itemList:
         if('->' in i or '<-' in i): return True
     return False
 
+url = "https://ampuri.github.io/bc-normal-seed-tracking/?seed=647505473&banners=ce%2Clt%2Cn&lastCat=Bird+Cat&selected=c%2C304823453%2Cn&rolls=999"
+trackName, slotData = getSlotData(url)
+items = {stripSlotName(e) for v in slotData.values() for e in v}
+
+tickets = {'silver' : 50, 'lucky' : 50}
 
 recur = 0
 dp = dict()
@@ -107,10 +93,12 @@ def optimizedPath(rewardDict, slotData, currentSlot, depth):
 #     print(k, v)
 
 rewardDict = getRewardDict()
-bestPath, bestReward = optimizedPath(rewardDict, slotData, '1A', 100)
+bestPath, bestReward = optimizedPath(rewardDict, slotData, '1A', 1001)
 print(recur)
 print(bestReward)
 for i, j in bestPath:
     print(i, j)
-    
-## dupe same track two time make track switch
+
+# TODO
+# dupe same track two time make track switch
+# search depending on available ticket
