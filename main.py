@@ -1,20 +1,20 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
+import csv
 
 def isSlot(s):
     if len(s) < 2: return False
     return s[:-1].isdigit() and s[-1] in 'AB'
 
 def getNextSlot(slot, slotMsg):
-    slotNumber = int(slot[:-1])
+    slotNumber = int(slot[:-1]) + 1
     track = slot[-1]
     if "->" in slotMsg:
         track = 'B'
-        slotNumber += 1
     elif "<-" in slotMsg:
         track = 'A'
-        slotNumber += 2
+        slotNumber += 1
     return str(slotNumber) + track
 
 def getSlotData(url):
@@ -56,6 +56,16 @@ def stripSlotName(slotName):
         slotName = slotName.split("->")[0].strip()
     return slotName
 
+def getRewardDict():
+    rewardDict = dict()
+    with open('itemValue.csv', mode='r') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) == 0: continue
+            count, item = row
+            rewardDict[item.strip()] = int(count)
+    return rewardDict;
+
 
 url = "https://ampuri.github.io/bc-normal-seed-tracking/?seed=647505473&banners=ce%2Clt%2Cn&lastCat=Bird+Cat&selected=c%2C304823453%2Cn"
 trackName, slotData = getSlotData(url)
@@ -68,12 +78,39 @@ def isTrackSwitch(itemList):
         if('->' in i or '<-' in i): return True
     return False
 
-def optimizedPath(trackName, slotData, currentSlot, depth):
-    if isTrackSwitch(slotData[currentSlot]):
-        # branch
-    else:
-        
 
+recur = 0
+dp = dict()
+def optimizedPath(rewardDict, slotData, currentSlot, depth):
+    global recur
+    global dp
+    if currentSlot not in slotData or depth == 0:
+        return [], 0
+    if currentSlot in dp:
+        return dp[currentSlot]
+    slot = slotData[currentSlot]
+    bestItemReward = max(rewardDict[stripSlotName(item)] for item in slot)
+    bestItems = [item for item in slot if rewardDict[stripSlotName(item)] == bestItemReward]
 
+    bestChoices, bestReward = [], 0
+    for item in bestItems:
+        nextSlot = getNextSlot(currentSlot, item)
+        nextChoices, nextReward = optimizedPath(rewardDict, slotData, nextSlot, depth - 1)
+        if nextReward >= bestReward:
+            bestChoices = [(currentSlot, stripSlotName(item))] + nextChoices
+            bestReward = nextReward
+    recur += 1
+    dp[currentSlot] = (bestChoices, bestReward + bestItemReward)
+    return bestChoices, bestReward + bestItemReward
 
-optimizedPath(trackName, slotData, '1A', 100)
+# for k, v in slotData.items():
+#     print(k, v)
+
+rewardDict = getRewardDict()
+bestPath, bestReward = optimizedPath(rewardDict, slotData, '1A', 100)
+print(recur)
+print(bestReward)
+for i, j in bestPath:
+    print(i, j)
+    
+## dupe same track two time make track switch
