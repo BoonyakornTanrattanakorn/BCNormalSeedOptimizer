@@ -100,7 +100,7 @@ def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, t
         totalReward = itemReward + nextReward
         if totalReward > bestReward:
             bestReward = totalReward
-            bestChoices = [(currentSlot, stripSlotName(item))] + nextChoices
+            bestChoices = [(currentSlot, stripSlotName(item), trackName[idx])] + nextChoices
     dp[(currentSlot, tickets)] = (bestChoices, bestReward)
     return dp[(currentSlot, tickets)]
 
@@ -143,14 +143,13 @@ bestPath, bestReward = optimizedPath(trackName, dp, rewardDict, slotData, ticket
 print(trackName)
 print(bestReward)
 itemDict = dict()
-for i, j in bestPath:
-    print(i, j)
+for i, j, k in bestPath:
+    print(f"{i:>5} {j:>20} {k:>20}")
     itemDict[j] = itemDict.get(j, 0) + 1
 print("Total item:")
 for i, j in sorted(itemDict.items(), key=lambda item: item[1], reverse=True):
     print(i, j)
 end = time()
 print(f"{round(end-start, 2)} s")
+
 # TODO
-# dupe same track two time make track switch
-# search depending on available ticket
