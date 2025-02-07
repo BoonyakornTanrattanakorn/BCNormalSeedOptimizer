@@ -11,7 +11,7 @@
 0000, Fish Cat
 0000, Gross Cat
 0000, Lizard Cat
-1, Tank Cat
+0, Tank Cat
 0000, Titan Cat
 0000, Li'l Axe Cat
 0000, Li'l Bird Cat
@@ -36,7 +36,7 @@
 00, Rich Cat
 00, Sniper the Cat
 00, Speed Up
-0000, Treasure Radar
+10000, Treasure Radar
 00, Cat CPU
 00, Cat Jobs
 
