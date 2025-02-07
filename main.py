@@ -97,11 +97,31 @@ def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, t
     dp[(currentSlot, tickets)] = (bestChoices, bestReward)
     return dp[(currentSlot, tickets)]
 
+def getBanners(banner: list) -> str:
+    tmp = []
+    for b in banner:
+        if b == 'Normal':
+            tmp.append('n')
+        elif b == 'Normal+':
+            tmp.append('np')
+        elif b == 'Catfruit':
+            tmp.append('cf')
+        elif b == 'Catseye':
+            tmp.append('ce')
+        elif b == 'Lucky Ticket':
+            tmp.append('lt')
+        elif b == 'Lucky Ticket G':
+            tmp.append('ltg')
+    return "%2C".join(tmp)
+
 
 # for k, v in slotData.items():
 #     print(k, v)
+seed = 647505473
+# ['Normal', 'Normal+', 'Catfruit', 'Catseye', 'Lucky Ticket', 'Lucky Ticket G']
+banners = getBanners(['Normal', 'Cateye', 'Lucky Ticket'])
 
-url = "https://ampuri.github.io/bc-normal-seed-tracking/?seed=647505473&banners=ce%2Clt%2Cn&lastCat=Bird+Cat&selected=c%2C304823453%2Cn&rolls=999"
+url = f"https://ampuri.github.io/bc-normal-seed-tracking/?seed={seed}&banners={banners}&rolls=999"
 trackName, slotData = getSlotData(url)
 items = {stripSlotName(e) for v in slotData.values() for e in v}
 
