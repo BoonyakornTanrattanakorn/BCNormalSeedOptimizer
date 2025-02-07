@@ -7,9 +7,16 @@ from time import time
 def isSlot(s: str) -> bool:
     return len(s) >= 2 and s[:-1].isdigit() and s[-1] in 'AB'
 
-def getNextSlot(slot: str, slotMsg: str) -> str:
-    slotNumber = int(slot[:-1]) + (2 if '<-' in slotMsg else 1)
-    track = 'A' if '<-' in slotMsg else ('B' if '->' in slotMsg else slot[-1])
+def getNextSlot(slotName: str, slot: list, trackIdx: str, lastTrackIdx: str) -> str:
+    slotNumber = int(slotName[:-1])+1
+    track = slotName[-1]
+    if trackIdx == lastTrackIdx:
+        item = slot[trackIdx]
+        if '->' in item:
+            track = 'B'
+        elif '<-' in item:
+            track = 'A'
+            slotNumber += 1
     return f"{slotNumber}{track}"
 
 
@@ -70,7 +77,7 @@ def useTicket(trackName: str, tickets: tuple) -> tuple:
         tmp[1] -= 1
     return tuple(tmp)
 
-def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, tickets: tuple, currentSlot: str, depth: int) -> tuple[list, int]:
+def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, tickets: tuple, currentSlot: str, lastTrackIdx: int, depth: int) -> tuple[list, int]:
     if currentSlot not in slotData or depth == 0:
         return [], 0
     if (currentSlot, tickets) in dp:
@@ -83,11 +90,12 @@ def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, t
     for idx in range(len(slot)):
         item = slot[idx]
         itemReward = rewardDict[stripSlotName(item)]
-        nextSlot = getNextSlot(currentSlot, item)
+        nextSlot = getNextSlot(currentSlot, slot, idx, lastTrackIdx)
 
         nextTickets = useTicket(trackName[idx], tickets)
         if -1 in nextTickets: continue
-        nextChoices, nextReward = optimizedPath(trackName, dp, rewardDict, slotData, nextTickets, nextSlot, depth-1)
+
+        nextChoices, nextReward = optimizedPath(trackName, dp, rewardDict, slotData, nextTickets, nextSlot, idx, depth-1)
 
         totalReward = itemReward + nextReward
         if totalReward > bestReward:
@@ -119,19 +127,20 @@ def getBanners(banner: list) -> str:
 #     print(k, v)
 seed = 647505473
 # ['Normal', 'Normal+', 'Catfruit', 'Catseye', 'Lucky Ticket', 'Lucky Ticket G']
-banners = getBanners(['Normal', 'Cateye', 'Lucky Ticket'])
+banners = getBanners(['Normal', 'Catseye', 'Lucky Ticket'])
 
 url = f"https://ampuri.github.io/bc-normal-seed-tracking/?seed={seed}&banners={banners}&rolls=999"
 trackName, slotData = getSlotData(url)
 items = {stripSlotName(e) for v in slotData.values() for e in v}
 
 # silver, lucky
-tickets = (20, 1)
+tickets = (20, 22)
 
+print('start')
 start = time()
 dp = dict()
 rewardDict = getRewardDict()
-bestPath, bestReward = optimizedPath(trackName, dp, rewardDict, slotData, tickets, '1A', 20)
+bestPath, bestReward = optimizedPath(trackName, dp, rewardDict, slotData, tickets, '1A', None, 20)
 print(trackName)
 print(bestReward)
 for i, j in bestPath:
