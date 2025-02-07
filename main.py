@@ -84,7 +84,7 @@ def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, t
         return dp[(currentSlot, tickets)]
 
     slot = slotData[currentSlot]
-    bestReward = float('-inf')
+    bestReward = -1
     bestChoices = []
 
     for idx in range(len(slot)):
@@ -101,7 +101,6 @@ def optimizedPath(trackName: list, dp: dict, rewardDict: dict, slotData: dict, t
         if totalReward > bestReward:
             bestReward = totalReward
             bestChoices = [(currentSlot, stripSlotName(item))] + nextChoices
-
     dp[(currentSlot, tickets)] = (bestChoices, bestReward)
     return dp[(currentSlot, tickets)]
 
@@ -134,16 +133,21 @@ trackName, slotData = getSlotData(url)
 items = {stripSlotName(e) for v in slotData.values() for e in v}
 
 # silver, lucky
-tickets = (20, 22)
+tickets = (88, 51)
 
 print('start')
 start = time()
 dp = dict()
 rewardDict = getRewardDict()
-bestPath, bestReward = optimizedPath(trackName, dp, rewardDict, slotData, tickets, '1A', None, 20)
+bestPath, bestReward = optimizedPath(trackName, dp, rewardDict, slotData, tickets, '1A', None, 999)
 print(trackName)
 print(bestReward)
+itemDict = dict()
 for i, j in bestPath:
+    print(i, j)
+    itemDict[j] = itemDict.get(j, 0) + 1
+print("Total item:")
+for i, j in sorted(itemDict.items(), key=lambda item: item[1], reverse=True):
     print(i, j)
 end = time()
 print(f"{round(end-start, 2)} s")
