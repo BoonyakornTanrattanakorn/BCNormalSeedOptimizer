@@ -73,6 +73,8 @@ def useTicket(trackName: str, tickets: tuple) -> tuple:
         tmp[0] -= 1
     elif trackName == 'Catseye':
         tmp[0] -= 1
+    elif trackName == 'Catfruit':
+        tmp[0] -= 1
     elif trackName == 'Lucky Ticket':
         tmp[1] -= 1
     return tuple(tmp)
@@ -124,16 +126,16 @@ def getBanners(banner: list) -> str:
 
 # for k, v in slotData.items():
 #     print(k, v)
-seed = 647505473
+seed = 3676097164
 # ['Normal', 'Normal+', 'Catfruit', 'Catseye', 'Lucky Ticket', 'Lucky Ticket G']
-banners = getBanners(['Normal', 'Catseye', 'Lucky Ticket'])
+banners = getBanners(['Normal', 'Catfruit', 'Lucky Ticket'])
 
 url = f"https://ampuri.github.io/bc-normal-seed-tracking/?seed={seed}&banners={banners}&rolls=999"
 trackName, slotData = getSlotData(url)
 items = {stripSlotName(e) for v in slotData.values() for e in v}
 
 # silver, lucky
-tickets = (88, 51)
+tickets = (70, 23)
 
 print('start')
 start = time()
@@ -153,3 +155,8 @@ end = time()
 print(f"{round(end-start, 2)} s")
 
 # TODO
+# Fix track switch logic where for example
+# 9A   30K XP
+# 10A  30K XP (10K XP -> 11B)
+# expected behaviour is if choose 9A and 10A track will switch
+# but current behavious is choose 10A and track switch
