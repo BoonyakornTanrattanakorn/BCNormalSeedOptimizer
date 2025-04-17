@@ -22,7 +22,7 @@ def getNextSlot(slotName: str, slot: list, trackIdx: str, lastTrackIdx: str) -> 
 
 def getSlotData(url: str) -> tuple[list, dict]:
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     options.add_argument("--log-level=3")
     
     with webdriver.Chrome(options=options) as driver:
@@ -72,8 +72,6 @@ def useTicket(trackName: str, tickets: tuple) -> tuple:
     if trackName == 'Normal':
         tmp[0] -= 1
     elif trackName == 'Catseye':
-        tmp[0] -= 1
-    elif trackName == 'Catfruit':
         tmp[0] -= 1
     elif trackName == 'Lucky Ticket':
         tmp[1] -= 1
@@ -126,16 +124,16 @@ def getBanners(banner: list) -> str:
 
 # for k, v in slotData.items():
 #     print(k, v)
-seed = 3676097164
+seed = 1734999558
 # ['Normal', 'Normal+', 'Catfruit', 'Catseye', 'Lucky Ticket', 'Lucky Ticket G']
-banners = getBanners(['Normal', 'Catfruit', 'Lucky Ticket'])
+banners = getBanners(['Normal', 'Catseye', 'Lucky Ticket'])
 
 url = f"https://ampuri.github.io/bc-normal-seed-tracking/?seed={seed}&banners={banners}&rolls=999"
 trackName, slotData = getSlotData(url)
 items = {stripSlotName(e) for v in slotData.values() for e in v}
 
 # silver, lucky
-tickets = (70, 23)
+tickets = (105, 60)
 
 print('start')
 start = time()
@@ -155,8 +153,3 @@ end = time()
 print(f"{round(end-start, 2)} s")
 
 # TODO
-# Fix track switch logic where for example
-# 9A   30K XP
-# 10A  30K XP (10K XP -> 11B)
-# expected behaviour is if choose 9A and 10A track will switch
-# but current behavious is choose 10A and track switch
