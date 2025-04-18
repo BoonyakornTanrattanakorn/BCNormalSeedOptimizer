@@ -124,9 +124,9 @@ def getBanners(banner: list) -> str:
 
 # for k, v in slotData.items():
 #     print(k, v)
-seed = 1734999558
+seed = 355591313
 # ['Normal', 'Normal+', 'Catfruit', 'Catseye', 'Lucky Ticket', 'Lucky Ticket G']
-banners = getBanners(['Normal', 'Catseye', 'Lucky Ticket'])
+banners = getBanners(['Normal', 'Lucky Ticket'])
 
 url = f"https://ampuri.github.io/bc-normal-seed-tracking/?seed={seed}&banners={banners}&rolls=999"
 trackName, slotData = getSlotData(url)
@@ -136,9 +136,10 @@ items = {stripSlotName(e) for v in slotData.values() for e in v}
 tickets = (105, 60)
 
 print('start')
-start = time()
 dp = dict()
 rewardDict = getRewardDict()
+
+start = time()
 bestPath, bestReward = optimizedPath(trackName, dp, rewardDict, slotData, tickets, '1A', None, 999)
 print(trackName)
 print(bestReward)
